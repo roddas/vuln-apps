@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { STATUS } from "./helper";
+import { STATUS, createLoginToken, login } from "./helper";
 
 const app = express();
 const PORT = 3333;
@@ -70,14 +70,23 @@ app.get("/users", async (request: Request, response: Response) => {
 
 // List all users
 app.post("/login", async (request: Request, response: Response) => {
-  let statusCode = STATUS.CREATED;
-
   const { email, password } = request.body;
-  /*
-    After receive the body data, you need to sanitize  and validate it before insert into the database,
-    but I won't do it for the sake of the purpose of the presentation.
-    */
-  response.json({ email, password });
+  /* 
+     SANITIZE THE INPUT FIRSTLY, but I won't do it for the sake of the example.
+*/
+  const user = await login(email, password);
+  if (user !== null) {
+    response.status(STATUS.OK).json({
+      status: STATUS.OK,
+      data: user,
+      message: `Seja bem-vindo ao sistema ${user.name} ${user.lastName}`,
+    });
+    return;
+  }
+  response.status(STATUS.UNAUTHORIZED).json({
+    status: STATUS.UNAUTHORIZED,
+    message: "Usuário e/ou senha desconhecidos.",
+  });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
