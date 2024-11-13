@@ -5,3 +5,5 @@ run:
 	yarn dev 
 clean:
 	rm node_modules/ -rf
+seed:
+	bash seed.sh
