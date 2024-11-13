@@ -19,7 +19,6 @@
     "express": "^4.21.1"
   },
   "scripts": {
-    "install": "yarn",
     "migrate": "yarn run prisma migrate dev --name init",
     "dev": "yarn run ts-node-dev src/app.ts"
   }
