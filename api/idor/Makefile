@@ -1,7 +1,7 @@
 build:
-	yarn
-	yarn run prisma migrate dev --name init
+	yarn run install
+	yarn run migrate
 run:
-	yarn run ts-node-dev src/app.ts 
+	yarn dev 
 clean:
 	rm node_modules/ -rf
