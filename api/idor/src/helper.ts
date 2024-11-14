@@ -21,8 +21,9 @@ function toHex(str: string): string {
 }
 
 export function createLoginToken(email: string): string {
-  return "idor_" + toHex(email);
+  return "idor_" + toHex(email + Date.now());
 }
+
 export async function login(
   email: string,
   password: string
@@ -46,4 +47,37 @@ export async function login(
   });
 
   return userData;
+}
+
+export async function isLogged(token: string): Promise<boolean> {
+  const userData = await user.findFirst({
+    where: {
+      token,
+    },
+  });
+
+  if (userData) {
+    return true;
+  }
+  return false;
+}
+
+// It's vulnerable to IDOR
+export async function logout(token: string): Promise<void> {
+  const userData = await user.findFirst({
+    where: {
+      token,
+    },
+  });
+
+  if (userData) {
+    await user.update({
+      data: {
+        token: null,
+      },
+      where: {
+        userId: userData.userId,
+      },
+    });
+  }
 }

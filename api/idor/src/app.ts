@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { STATUS, createLoginToken, login } from "./helper";
+import { STATUS, createLoginToken, isLogged, login } from "./helper";
 
 const app = express();
 const PORT = 3333;
@@ -68,7 +68,29 @@ app.get("/users", async (request: Request, response: Response) => {
   });
 });
 
-// List all users
+// Get the current user information
+app.get("/user/:id", async (request: Request, response: Response) => {
+  let statusCode = STATUS.UNAUTHORIZED;
+  const authToken = request.get("Authorization")?.split(" ")[1];
+
+  if (authToken) {
+    if (await isLogged(authToken)) {
+      statusCode = STATUS.OK;
+      response.status(statusCode).json({
+        status: statusCode,
+        message: authToken,
+      });
+      return;
+    }
+  }
+
+  response.status(statusCode).json({
+    status: statusCode,
+    message: "Não autorizado, realize o login primeiro.",
+  });
+});
+
+// Login
 app.post("/login", async (request: Request, response: Response) => {
   const { email, password } = request.body;
   /* 
