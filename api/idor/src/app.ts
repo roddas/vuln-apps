@@ -1,7 +1,15 @@
 import express, { NextFunction, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { STATUS, createLoginToken, isLogged, login } from "./helper";
+import {
+  STATUS,
+  getUserByEmail,
+  getUserById,
+  getUserByToken,
+  isLogged,
+  login,
+  logout,
+} from "./helper";
 
 const app = express();
 const PORT = 3333;
@@ -24,6 +32,7 @@ app.get("/", (request: Request, response: Response) => {
       "DELETE /user/:id",
       "PUT /user/:id",
       "POST /login",
+      "POST /logout",
     ],
   });
 });
@@ -48,7 +57,7 @@ app.post("/user", async (request: Request, response: Response) => {
   response.status(statusCode).json({
     message: "Usuário criado com sucesso.",
     status: statusCode,
-    data: user,
+    data: getUserByEmail(email),
   });
 });
 
@@ -72,13 +81,14 @@ app.get("/users", async (request: Request, response: Response) => {
 app.get("/user/:id", async (request: Request, response: Response) => {
   let statusCode = STATUS.UNAUTHORIZED;
   const authToken = request.get("Authorization")?.split(" ")[1];
+  const { id } = request.params;
 
   if (authToken) {
     if (await isLogged(authToken)) {
       statusCode = STATUS.OK;
       response.status(statusCode).json({
         status: statusCode,
-        message: authToken,
+        message: await getUserById(id),
       });
       return;
     }
@@ -111,6 +121,28 @@ app.post("/login", async (request: Request, response: Response) => {
   });
 });
 
+// Logout
+app.post("/logout", async (request: Request, response: Response) => {
+  let statusCode = STATUS.UNAUTHORIZED;
+  const authToken = request.get("Authorization")?.split(" ")[1];
+
+  if (authToken) {
+    if (await isLogged(authToken)) {
+      statusCode = STATUS.OK;
+      logout(authToken);
+      response.status(statusCode).json({
+        status: statusCode,
+        message: "Até mais.",
+      });
+      return;
+    }
+  }
+
+  response.status(statusCode).json({
+    status: statusCode,
+    message: "Não autorizado, realize o login primeiro.",
+  });
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`The server is running at ${PORT}`);
 });

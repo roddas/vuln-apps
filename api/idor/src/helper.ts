@@ -2,6 +2,13 @@ import { PrismaClient, User } from "@prisma/client";
 import { compareSync } from "bcrypt";
 const { user } = new PrismaClient();
 
+interface IUserInformation {
+  userId: number;
+  name: string;
+  lastName: string;
+  email: string;
+}
+
 export const STATUS = {
   OK: 200,
   CREATED: 201,
@@ -48,13 +55,53 @@ export async function login(
 
   return userData;
 }
-
-export async function isLogged(token: string): Promise<boolean> {
-  const userData = await user.findFirst({
+export async function getUserByToken(
+  token: string
+): Promise<IUserInformation | null> {
+  return await user.findFirst({
     where: {
       token,
     },
+    select: {
+      email: true,
+      lastName: true,
+      name: true,
+      userId: true,
+    },
   });
+}
+export async function getUserById(
+  userId: string
+): Promise<IUserInformation | null> {
+  return await user.findFirst({
+    where: {
+      userId: Number(userId),
+    },
+    select: {
+      email: true,
+      lastName: true,
+      name: true,
+      userId: true,
+    },
+  });
+}
+export async function getUserByEmail(
+  email: string
+): Promise<IUserInformation | null> {
+  return await user.findFirst({
+    where: {
+      email,
+    },
+    select: {
+      email: true,
+      lastName: true,
+      name: true,
+      userId: true,
+    },
+  });
+}
+export async function isLogged(token: string): Promise<boolean> {
+  const userData = await getUserByToken(token);
 
   if (userData) {
     return true;
@@ -64,11 +111,7 @@ export async function isLogged(token: string): Promise<boolean> {
 
 // It's vulnerable to IDOR
 export async function logout(token: string): Promise<void> {
-  const userData = await user.findFirst({
-    where: {
-      token,
-    },
-  });
+  const userData = await getUserByToken(token);
 
   if (userData) {
     await user.update({
