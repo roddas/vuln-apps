@@ -143,6 +143,25 @@ app.post("/logout", async (request: Request, response: Response) => {
     message: "Não autorizado, realize o login primeiro.",
   });
 });
+
+// Handle the 404 error
+app.use((request: Request, response: Response, next: NextFunction) => {
+  response.status(STATUS.NOT_FOUND).json({
+    status: STATUS.NOT_FOUND,
+    message: `This route does not exists`
+  });
+});
+
+
+// Handle the 404 error
+app.use((error: Error, request: Request, response: Response, next: NextFunction) => {
+  response.status(STATUS.INTERNAL_SERVER_ERROR).json({
+    status: STATUS.INTERNAL_SERVER_ERROR,
+    message: `Somethis is wrong`,
+    stack : error.stack
+  });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`The server is running at ${PORT}`);
 });
