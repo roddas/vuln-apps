@@ -83,15 +83,60 @@ app.get("/user/:id", async (request: Request, response: Response) => {
   const authToken = request.get("Authorization")?.split(" ")[1];
   const { id } = request.params;
 
-  if (authToken) {
-    if (await isLogged(authToken)) {
-      statusCode = STATUS.OK;
+  if (authToken && await isLogged(authToken)) {
+    statusCode = STATUS.OK;
+    const user = await getUserById(id);
+
+    if (user) {
       response.status(statusCode).json({
         status: statusCode,
-        message: await getUserById(id),
+        message: user,
       });
       return;
     }
+    statusCode = STATUS.NOT_FOUND;
+
+    response.status(statusCode).json({
+      status: statusCode,
+      message: 'Usuário não encontrado !!',
+    });
+    return;
+  }
+
+  response.status(statusCode).json({
+    status: statusCode,
+    message: "Não autorizado, realize o login primeiro.",
+  });
+});
+
+// Delete the current user 
+app.delete("/user/:id", async (request: Request, response: Response) => {
+  let statusCode = STATUS.UNAUTHORIZED;
+  const authToken = request.get("Authorization")?.split(" ")[1];
+  const { id } = request.params;
+
+  if (authToken && await isLogged(authToken)) {
+    statusCode = STATUS.OK;
+    const user = await getUserById(id);
+
+    if (user) {
+      await prisma.user.delete({where : {
+        userId : Number(id)
+      }});
+      
+      response.status(statusCode).json({
+        status: statusCode,
+        message: 'Usuário apagado do sistema!!',
+      });
+      return;
+    }
+    statusCode = STATUS.NOT_FOUND;
+
+    response.status(statusCode).json({
+      status: statusCode,
+      message: 'Usuário não encontrado !!',
+    });
+    return;
   }
 
   response.status(statusCode).json({
@@ -158,7 +203,7 @@ app.use((error: Error, request: Request, response: Response, next: NextFunction)
   response.status(STATUS.INTERNAL_SERVER_ERROR).json({
     status: STATUS.INTERNAL_SERVER_ERROR,
     message: `Somethis is wrong`,
-    stack : error.stack
+    stack: error.stack
   });
 });
 
