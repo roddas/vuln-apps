@@ -30,7 +30,7 @@ app.get("/", (request: Request, response: Response) => {
       "GET /user/:id",
       "POST /user",
       "DELETE /user/:id",
-      "PUT /user/:id",
+      "PATCH /user/:id",
       "POST /login",
       "POST /logout",
     ],
@@ -123,10 +123,48 @@ app.delete("/user/:id", async (request: Request, response: Response) => {
       await prisma.user.delete({where : {
         userId : Number(id)
       }});
-      
+
       response.status(statusCode).json({
         status: statusCode,
         message: 'Usuário apagado do sistema!!',
+      });
+      return;
+    }
+    statusCode = STATUS.NOT_FOUND;
+
+    response.status(statusCode).json({
+      status: statusCode,
+      message: 'Usuário não encontrado !!',
+    });
+    return;
+  }
+
+  response.status(statusCode).json({
+    status: statusCode,
+    message: "Não autorizado, realize o login primeiro.",
+  });
+});
+
+// Delete the current user 
+app.patch("/user/:id", async (request: Request, response: Response) => {
+  let statusCode = STATUS.UNAUTHORIZED;
+  const authToken = request.get("Authorization")?.split(" ")[1];
+  const { id } = request.params;
+  const { email, name, lastName, password } = request.body;
+
+  if (authToken && await isLogged(authToken)) {
+    statusCode = STATUS.OK;
+    const user = await getUserById(id);
+
+    if (user) {
+      const newUser = await prisma.user.update({where : {
+        userId : Number(id)
+      },data : {
+        email,name,lastName,password
+      }});
+      response.status(statusCode).json({
+        status: statusCode,
+        message: newUser,
       });
       return;
     }
