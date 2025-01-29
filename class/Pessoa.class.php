@@ -15,19 +15,19 @@ class Pessoa
     }
 
     // Getter para o nome
-    public function getNome(): string
+    public function getNome()
     {
         return $this->nome;
     }
 
     // Setter para o nome
-    public function setNome(string $nome): void
+    public function setNome(string $nome)
     {
         $this->nome = $nome;
     }
 
     // Getter para a idade
-    public function getIdade(): int
+    public function getIdade()
     {
         return $this->idade;
     }

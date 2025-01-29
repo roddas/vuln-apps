@@ -1,6 +1,7 @@
 <?php
 
-require_once 'class/Pessoa.php';
+require_once 'class/Pessoa.class.php';
+require_once 'class/Loja.class.php';
 
 // Criando instâncias de Pessoa
 $pessoa1 = new Pessoa('João', 25, 'joao@example.com');
